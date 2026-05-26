@@ -1,17 +1,22 @@
-name: Build Executável Portátil
+name: Compilar Executável Automaticamente
 
 on:
   push:
-    paths:
-      - 'src/**'
-  workflow_dispatch:  # permite rodar manualmente
+    branches:
+      - main
+      - master
+  # Opcional: rodar toda semana (ex: domingo às 3h)
+  schedule:
+    - cron: '0 3 * * 0'
+  # Permite também disparo manual, se precisar
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: windows-latest   # precisa ser Windows para gerar .exe
+    runs-on: windows-latest
 
     steps:
-      - name: Checkout do código
+      - name: Baixar código do repositório
         uses: actions/checkout@v4
 
       - name: Configurar Python
@@ -23,11 +28,11 @@ jobs:
         run: |
           pip install pandas openpyxl matplotlib pyinstaller
 
-      - name: Compilar .exe
+      - name: Compilar executável com PyInstaller
         run: |
           pyinstaller --onefile --windowed --name "ComparadorSemanas" src/comparador_excel.py
 
-      - name: Upload do executável
+      - name: Fazer upload do .exe como artefato
         uses: actions/upload-artifact@v4
         with:
           name: ComparadorSemanas
