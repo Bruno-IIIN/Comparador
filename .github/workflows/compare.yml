@@ -1,0 +1,46 @@
+name: Comparar Excel Semanas
+
+on:
+  # Executa manualmente pelo botão "Run workflow"
+  workflow_dispatch:
+    inputs:
+      semana1:
+        description: 'Caminho para arquivo Semana 1 (ex: data/semana1.xlsx)'
+        required: true
+        default: 'data/semana1.xlsx'
+      semana2:
+        description: 'Caminho para arquivo Semana 2 (ex: data/semana2.xlsx)'
+        required: true
+        default: 'data/semana2.xlsx'
+  # Opcional: também executa quando houver push na main e os arquivos mudarem
+  push:
+    paths:
+      - 'data/*.xlsx'
+      - 'scripts/compare_excel.py'
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Instalar dependências
+        run: |
+          pip install pandas openpyxl matplotlib
+
+      - name: Executar comparação
+        run: |
+          python scripts/compare_excel.py "${{ github.event.inputs.semana1 }}" "${{ github.event.inputs.semana2 }}"
+
+      - name: Upload do dashboard como artefato
+        uses: actions/upload-artifact@v4
+        with:
+          name: dashboard-comparativo
+          path: dashboard.html
+          retention-days: 7
