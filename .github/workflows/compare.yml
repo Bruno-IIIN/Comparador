@@ -1,26 +1,15 @@
-name: Comparar Excel Semanas
+name: Build Executável Portátil
 
 on:
-  # Executa manualmente pelo botão "Run workflow"
-  workflow_dispatch:
-    inputs:
-      semana1:
-        description: 'Caminho para arquivo Semana 1 (ex: data/semana1.xlsx)'
-        required: true
-        default: 'data/semana1.xlsx'
-      semana2:
-        description: 'Caminho para arquivo Semana 2 (ex: data/semana2.xlsx)'
-        required: true
-        default: 'data/semana2.xlsx'
-  # Opcional: também executa quando houver push na main e os arquivos mudarem
   push:
     paths:
-      - 'data/*.xlsx'
-      - 'scripts/compare_excel.py'
+      - 'src/**'
+  workflow_dispatch:  # permite rodar manualmente
 
 jobs:
-  compare:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: windows-latest   # precisa ser Windows para gerar .exe
+
     steps:
       - name: Checkout do código
         uses: actions/checkout@v4
@@ -32,15 +21,15 @@ jobs:
 
       - name: Instalar dependências
         run: |
-          pip install pandas openpyxl matplotlib
+          pip install pandas openpyxl matplotlib pyinstaller
 
-      - name: Executar comparação
+      - name: Compilar .exe
         run: |
-          python scripts/compare_excel.py "${{ github.event.inputs.semana1 }}" "${{ github.event.inputs.semana2 }}"
+          pyinstaller --onefile --windowed --name "ComparadorSemanas" src/comparador_excel.py
 
-      - name: Upload do dashboard como artefato
+      - name: Upload do executável
         uses: actions/upload-artifact@v4
         with:
-          name: dashboard-comparativo
-          path: dashboard.html
-          retention-days: 7
+          name: ComparadorSemanas
+          path: dist/ComparadorSemanas.exe
+          retention-days: 30
